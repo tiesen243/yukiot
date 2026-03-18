@@ -9,6 +9,7 @@ function App() {
   const { ports, status, connect, disconnect, send } = useUART();
   const [port, setPort] = useState<string>(ports[0] ?? "");
   const [data, setData] = useState<string[]>([]);
+  const [msg, setMsg] = useState("");
 
   useUARTSubscription((data) => {
     console.log("Received data:", data);
@@ -50,15 +51,23 @@ function App() {
         {status.type === "Connected" ? (
           <button onClick={() => disconnect()}>Disconnect</button>
         ) : (
-          <button onClick={() => connect(port, 115200)}>Connect</button>
+          <button onClick={() => connect(port, 9600)}>Connect</button>
         )}
       </div>
 
       <p>{JSON.stringify(status)}</p>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
 
-      <button onClick={() => send("L1")}>Turn on LED</button>
-      <button onClick={() => send("L0")}>Turn off LED</button>
+      <div>
+        <input
+          type="text"
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          placeholder="Type a message to send"
+        />
+        <button onClick={() => send(msg)}>Send</button>
+      </div>
+
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </main>
   );
 }

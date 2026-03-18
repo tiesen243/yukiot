@@ -142,7 +142,8 @@ ACDS_VERSION := 13.0sp1
 ELF := fpga.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS := source.c includes/datetime.c includes/lcd.c includes/timer_ctrl.c
+C_SRCS += source.c includes/datetime.c includes/lcd.c includes/timer_ctrl.c includes/uart.c
+C_SRCS += includes/uart.c
 CXX_SRCS :=
 ASM_SRCS :=
 

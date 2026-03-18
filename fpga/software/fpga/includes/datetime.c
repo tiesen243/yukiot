@@ -63,3 +63,11 @@ void datetime_tick(void)
         date.year++;
     }
 }
+
+void datetime_set(const Date *newDate)
+{
+    if (newDate == 0)
+        return;
+
+    date = *newDate;
+}

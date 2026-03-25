@@ -142,8 +142,8 @@ ACDS_VERSION := 13.0sp1
 ELF := fpga.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS += source.c includes/datetime.c includes/lcd.c includes/timer_ctrl.c includes/uart.c
-C_SRCS += includes/uart.c
+C_SRCS += source.c include/datetime.c include/lcd.c include/timer_ctrl.c include/uart.c
+C_SRCS += include/uart.c
 CXX_SRCS :=
 ASM_SRCS :=
 
@@ -181,7 +181,7 @@ SYS_LIB :=
 BSP_ROOT_DIR := ../fpga_bsp/
 
 # List of application specific include directories, library directories and library names
-APP_INCLUDE_DIRS := includes
+APP_INCLUDE_DIRS := include
 APP_LIBRARY_DIRS :=
 APP_LIBRARY_NAMES :=
 

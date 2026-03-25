@@ -12,8 +12,7 @@ typedef struct
     int second;
 } Date;
 
-const Date *datetime_get(void);
-void datetime_tick(void);
-void datetime_set(const Date *newDate);
+void datetime_tick(Date *date);
+int is_alarm(const Date *current, const Date *alarm);
 
 #endif

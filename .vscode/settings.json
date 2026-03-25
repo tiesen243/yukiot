@@ -2,6 +2,5 @@
     "C_Cpp.default.includePath": [
         "${workspaceFolder}/fpga/software/fpga_bsp",
         "${workspaceFolder}/fpga/software/fpga_bsp/HAL/inc",
-        "${workspaceFolder}/fpga/software/fpga/include",
     ]
 }

@@ -6,18 +6,22 @@
  */
 
 #include "sys/alt_irq.h"
+#include <io.h>
 
 #include "system.h"
-#include "datetime.h"
-#include "lcd.h"
-#include "timer_ctrl.h"
-#include "uart.h"
+#include "include/datetime.h"
+#include "include/lcd.h"
+#include "include/timer_ctrl.h"
+#include "include/uart.h"
+
+static Date current = {25, 3, 2026, 18, 0, 0};
+static Date alarm = {25, 3, 2026, 18, 0, 10};
 
 void Timer_IQR_Handler(void *isr_context)
 {
   (void)isr_context;
-  datetime_tick();
-  lcd_show_datetime(datetime_get());
+  datetime_tick(&current);
+  lcd_show_datetime(&current);
   timer_clear_timeout();
 }
 
@@ -25,7 +29,7 @@ int main(void)
 {
   lcd_init();
   lcd_power_on();
-  lcd_show_datetime(datetime_get());
+  lcd_show_datetime(&current);
 
   timer_init_1s();
   alt_ic_isr_register(0, TIMER_IRQ, Timer_IQR_Handler, (void *)0, (void *)0);
@@ -37,18 +41,12 @@ int main(void)
     {
       uart_receive_string(buffer, sizeof(buffer));
       uart_send_string(buffer);
+    }
 
-      if (buffer[0] == 'S' && strlen(buffer) == 16)
-      {
-        Date newDate;
-        newDate.day = (buffer[1] - '0') * 10 + (buffer[2] - '0');
-        newDate.month = (buffer[3] - '0') * 10 + (buffer[4] - '0');
-        newDate.year = (buffer[5] - '0') * 1000 + (buffer[6] - '0') * 100 + (buffer[7] - '0') * 10 + (buffer[8] - '0');
-        newDate.hour = (buffer[9] - '0') * 10 + (buffer[10] - '0');
-        newDate.minute = (buffer[11] - '0') * 10 + (buffer[12] - '0');
-        newDate.second = (buffer[13] - '0') * 10 + (buffer[14] - '0');
-        datetime_set(&newDate);
-      }
+    if (is_alarm(&current, &alarm))
+    {
+      uart_send_string("Alarm!\n");
+      IOWR(BUZZ_BASE, 0, 1);
     }
   }
 

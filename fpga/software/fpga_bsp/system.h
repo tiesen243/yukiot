@@ -4,7 +4,7 @@
  * Machine generated for CPU 'nios2_qsys_0' in SOPC Builder design 'system'
  * SOPC Builder design path: D:/yukiot/fpga/system.sopcinfo
  *
- * Generated: Wed Mar 18 18:30:32 ICT 2026
+ * Generated: Wed Mar 25 18:13:08 ICT 2026
  */
 
 /*

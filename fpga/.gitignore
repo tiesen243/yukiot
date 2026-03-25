@@ -1,5 +1,4 @@
 # Quartus II files
-*.qpf
 *.qsf
 *.qws
 *.rpt

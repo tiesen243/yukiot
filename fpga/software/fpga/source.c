@@ -159,6 +159,12 @@ int main(void)
 
   printf("Started!\n");
 
+  // turn off led and 7-seg
+  IOWR(BUZZ_BASE, 0, 0x00);
+  IOWR(HEX2_BASE, 0, 0xFF);
+  IOWR(HEX1_BASE, 0, 0xFF);
+  IOWR(HEX0_BASE, 0, 0xFF);
+
   while (1)
   {
     if (IORD(BUTTON_BASE, 0) == 14)
@@ -169,6 +175,7 @@ int main(void)
       mode = RUNNING;
       alarm_counter = 0;
       printf("Tat bao thuc\n");
+      uart_send_string("Alarm deactivated");
     }
     else if (IORD(BUTTON_BASE, 0) == 13 && mode == RUNNING)
     {
@@ -177,6 +184,7 @@ int main(void)
 
       mode = SET_TIME;
       printf("Mode: SET_TIME\n");
+      uart_send_string("Set time mode activated");
     }
     else if (IORD(BUTTON_BASE, 0) == 11 && mode == RUNNING)
     {
@@ -185,6 +193,7 @@ int main(void)
 
       mode = SET_ALARM;
       printf("Mode: SET_ALARM\n");
+      uart_send_string("Set alarm mode activated");
     }
 
     if (is_alarm(&current_time, &alarm_time))
@@ -198,6 +207,7 @@ int main(void)
 
       if (buffer[0] == 't') // set time command
       {
+        mode = SET_TIME;
         Date new_time;
 
         if (parse_uart_time_command(buffer, &new_time))
@@ -212,9 +222,12 @@ int main(void)
         {
           printf("Invalid time format received via UART.\n");
         }
+
+        mode = RUNNING;
       }
       else if (buffer[0] == 'a') // set alarm command
       {
+        mode = SET_ALARM;
         Date new_alarm;
 
         if (parse_uart_time_command(buffer, &new_alarm))
@@ -223,11 +236,14 @@ int main(void)
           printf("Alarm updated via UART: %02d/%02d/%04d %02d:%02d:%02d\n",
                  alarm_time.day, alarm_time.month, alarm_time.year,
                  alarm_time.hour, alarm_time.minute, alarm_time.second);
+          alarm_counter = 0; // reset alarm counter to prevent immediate alarm if new time matches current time
         }
         else
         {
           printf("Invalid alarm format received via UART.\n");
         }
+
+        mode = RUNNING;
       }
     }
   }
@@ -315,26 +331,32 @@ static void run_set_datetime(Date *target, const char *done_label)
     case 0:
       printf("Set year: %d\n", (switch_data));
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Year set");
       break;
     case 1:
       printf("Set month: %d\n", switch_data);
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Month set");
       break;
     case 2:
       printf("Set day: %d\n", switch_data);
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Day set");
       break;
     case 3:
       printf("Set hour: %d\n", switch_data);
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Hour set");
       break;
     case 4:
       printf("Set minute: %d\n", switch_data);
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Minute set");
       break;
     case 5:
       printf("Set second: %d\n", switch_data);
       apply_datetime_field(target, state, switch_data);
+      uart_send_string("Second set");
       break;
     case 6:
       printf("%s: %02d/%02d/%04d %02d:%02d:%02d\n", done_label,

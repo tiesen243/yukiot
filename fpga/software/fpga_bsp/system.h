@@ -4,7 +4,7 @@
  * Machine generated for CPU 'nios2_qsys_0' in SOPC Builder design 'system'
  * SOPC Builder design path: D:/yukiot/fpga/system.sopcinfo
  *
- * Generated: Wed Mar 25 18:13:08 ICT 2026
+ * Generated: Wed Mar 25 19:21:39 ICT 2026
  */
 
 /*
@@ -147,19 +147,19 @@
 #define ALT_NUM_INTERNAL_INTERRUPT_CONTROLLERS 1
 #define ALT_NUM_INTERRUPT_CONTROLLERS 1
 #define ALT_STDERR "/dev/jtag_uart_0"
-#define ALT_STDERR_BASE 0x110c0
+#define ALT_STDERR_BASE 0x110d0
 #define ALT_STDERR_DEV jtag_uart_0
 #define ALT_STDERR_IS_JTAG_UART
 #define ALT_STDERR_PRESENT
 #define ALT_STDERR_TYPE "altera_avalon_jtag_uart"
 #define ALT_STDIN "/dev/jtag_uart_0"
-#define ALT_STDIN_BASE 0x110c0
+#define ALT_STDIN_BASE 0x110d0
 #define ALT_STDIN_DEV jtag_uart_0
 #define ALT_STDIN_IS_JTAG_UART
 #define ALT_STDIN_PRESENT
 #define ALT_STDIN_TYPE "altera_avalon_jtag_uart"
 #define ALT_STDOUT "/dev/jtag_uart_0"
-#define ALT_STDOUT_BASE 0x110c0
+#define ALT_STDOUT_BASE 0x110d0
 #define ALT_STDOUT_DEV jtag_uart_0
 #define ALT_STDOUT_IS_JTAG_UART
 #define ALT_STDOUT_PRESENT
@@ -173,7 +173,7 @@
  */
 
 #define ALT_MODULE_CLASS_button altera_avalon_pio
-#define BUTTON_BASE 0x110b0
+#define BUTTON_BASE 0x110c0
 #define BUTTON_BIT_CLEARING_EDGE_REGISTER 0
 #define BUTTON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define BUTTON_CAPTURE 0
@@ -200,7 +200,7 @@
  */
 
 #define ALT_MODULE_CLASS_buzz altera_avalon_pio
-#define BUZZ_BASE 0x11050
+#define BUZZ_BASE 0x11060
 #define BUZZ_BIT_CLEARING_EDGE_REGISTER 0
 #define BUZZ_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define BUZZ_CAPTURE 0
@@ -237,7 +237,7 @@
  */
 
 #define ALT_MODULE_CLASS_jtag_uart_0 altera_avalon_jtag_uart
-#define JTAG_UART_0_BASE 0x110c0
+#define JTAG_UART_0_BASE 0x110d0
 #define JTAG_UART_0_IRQ 2
 #define JTAG_UART_0_IRQ_INTERRUPT_CONTROLLER_ID 0
 #define JTAG_UART_0_NAME "/dev/jtag_uart_0"
@@ -255,7 +255,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_blon altera_avalon_pio
-#define LCD_BLON_BASE 0x11090
+#define LCD_BLON_BASE 0x110a0
 #define LCD_BLON_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_BLON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_BLON_CAPTURE 0
@@ -282,7 +282,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_d altera_avalon_pio
-#define LCD_D_BASE 0x11060
+#define LCD_D_BASE 0x11070
 #define LCD_D_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_D_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_D_CAPTURE 0
@@ -309,7 +309,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_en altera_avalon_pio
-#define LCD_EN_BASE 0x11040
+#define LCD_EN_BASE 0x11050
 #define LCD_EN_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_EN_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_EN_CAPTURE 0
@@ -336,7 +336,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_on altera_avalon_pio
-#define LCD_ON_BASE 0x110a0
+#define LCD_ON_BASE 0x110b0
 #define LCD_ON_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_ON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_ON_CAPTURE 0
@@ -363,7 +363,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_rs altera_avalon_pio
-#define LCD_RS_BASE 0x11070
+#define LCD_RS_BASE 0x11080
 #define LCD_RS_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_RS_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_RS_CAPTURE 0
@@ -390,7 +390,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_rw altera_avalon_pio
-#define LCD_RW_BASE 0x11080
+#define LCD_RW_BASE 0x11090
 #define LCD_RW_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_RW_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_RW_CAPTURE 0
@@ -438,6 +438,33 @@
 #define ONCHIP_MEMORY2_0_SPAN 32768
 #define ONCHIP_MEMORY2_0_TYPE "altera_avalon_onchip_memory2"
 #define ONCHIP_MEMORY2_0_WRITABLE 1
+
+
+/*
+ * switch configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_switch altera_avalon_pio
+#define SWITCH_BASE 0x11040
+#define SWITCH_BIT_CLEARING_EDGE_REGISTER 0
+#define SWITCH_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define SWITCH_CAPTURE 0
+#define SWITCH_DATA_WIDTH 32
+#define SWITCH_DO_TEST_BENCH_WIRING 0
+#define SWITCH_DRIVEN_SIM_VALUE 0
+#define SWITCH_EDGE_TYPE "NONE"
+#define SWITCH_FREQ 50000000
+#define SWITCH_HAS_IN 1
+#define SWITCH_HAS_OUT 0
+#define SWITCH_HAS_TRI 0
+#define SWITCH_IRQ -1
+#define SWITCH_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define SWITCH_IRQ_TYPE "NONE"
+#define SWITCH_NAME "/dev/switch"
+#define SWITCH_RESET_VALUE 0
+#define SWITCH_SPAN 16
+#define SWITCH_TYPE "altera_avalon_pio"
 
 
 /*

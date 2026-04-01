@@ -6,8 +6,10 @@
  */
 
 #include "sys/alt_irq.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <io.h>
+#include <string.h>
 
 #include <system.h>
 #include "include/datetime.h"
@@ -51,6 +53,65 @@ const int HEX_7SEG[16] = {
 void set_time();
 
 void set_alarm();
+
+static int parse_fixed_digits(const char *s, int len)
+{
+  int value = 0;
+  int i;
+
+  for (i = 0; i < len; i++)
+  {
+    if (!isdigit((unsigned char)s[i]))
+      return -1;
+
+    value = value * 10 + (s[i] - '0');
+  }
+
+  return value;
+}
+
+static int parse_uart_time_command(const char *cmd, Date *out)
+{
+  int day, month, year, hour, minute, second;
+
+  if (cmd[0] != 't' && cmd[0] != 'a')
+    return 0;
+
+  if (strlen(cmd) != 15)
+    return 0;
+
+  day = parse_fixed_digits(cmd + 1, 2);
+  month = parse_fixed_digits(cmd + 3, 2);
+  year = parse_fixed_digits(cmd + 5, 4);
+  hour = parse_fixed_digits(cmd + 9, 2);
+  minute = parse_fixed_digits(cmd + 11, 2);
+  second = parse_fixed_digits(cmd + 13, 2);
+
+  printf("Parsed UART command - Day: %d, Month: %d, Year: %d, Hour: %d, Minute: %d, Second: %d\n",
+         day, month, year, hour, minute, second);
+
+  if (day < 1 || day > 31)
+    return 0;
+  if (month < 1 || month > 12)
+    return 0;
+  if (year < 0 || year > 9999)
+    return 0;
+  if (hour < 0 || hour > 23)
+    return 0;
+  if (minute < 0 || minute > 59)
+    return 0;
+  if (second < 0 || second > 59)
+    return 0;
+
+  out->day = day;
+  out->month = month;
+  out->year = year;
+  out->hour = hour;
+  out->minute = minute;
+  out->second = second;
+
+  return 1;
+}
 
 void Timer_IQR_Handler(void *isr_context)
 {
@@ -139,9 +200,7 @@ int main(void)
       {
         Date new_time;
 
-        if (scanf(buffer, "t%2d%2d%4d%2d%2d%2d",
-                  &new_time.day, &new_time.month, &new_time.year,
-                  &new_time.hour, &new_time.minute, &new_time.second) == 6)
+        if (parse_uart_time_command(buffer, &new_time))
         {
           current_time = new_time;
           printf("Time updated via UART: %02d/%02d/%04d %02d:%02d:%02d\n",
@@ -152,6 +211,22 @@ int main(void)
         else
         {
           printf("Invalid time format received via UART.\n");
+        }
+      }
+      else if (buffer[0] == 'a') // set alarm command
+      {
+        Date new_alarm;
+
+        if (parse_uart_time_command(buffer, &new_alarm))
+        {
+          alarm_time = new_alarm;
+          printf("Alarm updated via UART: %02d/%02d/%04d %02d:%02d:%02d\n",
+                 alarm_time.day, alarm_time.month, alarm_time.year,
+                 alarm_time.hour, alarm_time.minute, alarm_time.second);
+        }
+        else
+        {
+          printf("Invalid alarm format received via UART.\n");
         }
       }
     }

@@ -1,6 +1,6 @@
 module fpga(
     input  CLOCK_50, UART_RXD,
-	 input  [2:0] KEY,
+	 input  [3:0] KEY,
 	 input  [6:0] SW,
 	 
 	 inout  [7:0] GPIO,
@@ -23,7 +23,7 @@ module fpga(
 	  .lcd_rs_external_connection_export   (LCD_RS),
 	  .lcd_d_external_connection_export    (LCD_DATA),
 
-	  .button_external_connection_export   (KEY[2:0]),
+	  .button_external_connection_export   (KEY[3:0]),
 	  .switch_external_connection_export   (SW[6:0]),
 
 	  .button_col_external_connection_export (GPIO[3:0]),

@@ -70,7 +70,7 @@ void Timer_IQR_Handler(void *isr_context)
   else if (mode == SET_ALARM)
     set_alarm();
 
-  if (alarm_counter > 0)
+  if (alarm_counter > 0 && mode == RUNNING)
   {
     count_2++;
     if (count_2 >= 10)
@@ -97,30 +97,30 @@ int main(void)
   timer_init(10);
   alt_ic_isr_register(0, TIMER_IRQ, Timer_IQR_Handler, (void *)0, (void *)0);
 
-  printf("Started!");
+  printf("Started!\n");
 
   while (1)
   {
-
-    if (IORD(BUTTON_BASE, 0) == 6)
+    if (IORD(BUTTON_BASE, 0) == 14 && mode != RUNNING)
     {
-      while (IORD(BUTTON_BASE, 0) == 6)
+      while (IORD(BUTTON_BASE, 0) == 14)
         ;
 
       mode = RUNNING;
+      alarm_counter = 0;
       printf("Tat bao thuc\n");
     }
-    else if (IORD(BUTTON_BASE, 0) == 5 && mode == RUNNING)
+    else if (IORD(BUTTON_BASE, 0) == 13 && mode == RUNNING)
     {
-      while (IORD(BUTTON_BASE, 0) == 5)
+      while (IORD(BUTTON_BASE, 0) == 13)
         ;
 
       mode = SET_TIME;
       printf("Mode: SET_TIME\n");
     }
-    else if (IORD(BUTTON_BASE, 0) == 3 && mode == RUNNING)
+    else if (IORD(BUTTON_BASE, 0) == 11 && mode == RUNNING)
     {
-      while (IORD(BUTTON_BASE, 0) == 3)
+      while (IORD(BUTTON_BASE, 0) == 11)
         ;
 
       mode = SET_ALARM;
@@ -136,18 +136,13 @@ int main(void)
 
 int state = 0;
 
-void set_time()
+static int normalize_switch_value(int switch_data, int field_state)
 {
-  int switch_data = IORD(SWITCH_BASE, 0);
-
-  if (switch_data == 0)
-    return;
-
-  if (state == 0) // check year
+  if (field_state == 0) // year
     switch_data = switch_data + 2000;
-  else if (state == 1) // check month
+  else if (field_state == 1) // month
     switch_data = switch_data % 13;
-  else if (state == 2) // check day
+  else if (field_state == 2) // day
   {
     int is_leap_year = ((current_time.year % 4 == 0 && current_time.year % 100 != 0) || (current_time.year % 400 == 0));
     int is_month_31_days = (current_time.month == 1 || current_time.month == 3 || current_time.month == 5 || current_time.month == 7 || current_time.month == 8 || current_time.month == 10 || current_time.month == 12);
@@ -159,64 +154,93 @@ void set_time()
     else
       switch_data = switch_data % 31;
   }
-  else if (state == 3)
+  else if (field_state == 3)
     switch_data = switch_data % 24;
-  else if (state == 4)
+  else if (field_state == 4)
     switch_data = switch_data % 60;
-  else if (state == 5)
+  else if (field_state == 5)
     switch_data = switch_data % 60;
+
+  return switch_data;
+}
+
+static void apply_datetime_field(Date *target, int field_state, int switch_data)
+{
+  switch (field_state)
+  {
+  case 0:
+    target->year = switch_data;
+    break;
+  case 1:
+    target->month = switch_data;
+    break;
+  case 2:
+    target->day = switch_data;
+    break;
+  case 3:
+    target->hour = switch_data;
+    break;
+  case 4:
+    target->minute = switch_data;
+    break;
+  case 5:
+    target->second = switch_data;
+    break;
+  default:
+    break;
+  }
+}
+
+static void run_set_datetime(Date *target, const char *done_label)
+{
+  int switch_data = IORD(SWITCH_BASE, 0);
+
+  if (switch_data == 0)
+    return;
+
+  switch_data = normalize_switch_value(switch_data, state);
 
   IOWR(HEX2_BASE, 0, 0xFF);
   IOWR(HEX1_BASE, 0, HEX_7SEG[(switch_data / 10) % 10]);
   IOWR(HEX0_BASE, 0, HEX_7SEG[switch_data % 10]);
 
-  if (IORD(BUTTON_BASE, 0) == 5)
+  if (IORD(BUTTON_BASE, 0) == 7)
   {
-    while (IORD(BUTTON_BASE, 0) == 5)
+    while (IORD(BUTTON_BASE, 0) == 7)
       ;
 
     switch (state)
     {
     case 0:
-    {
       printf("Set year: %d\n", (switch_data));
-      current_time.year = (switch_data);
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 1:
-    {
       printf("Set month: %d\n", switch_data);
-      current_time.month = switch_data;
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 2:
-    {
       printf("Set day: %d\n", switch_data);
-      current_time.day = switch_data;
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 3:
-    {
       printf("Set hour: %d\n", switch_data);
-      current_time.hour = switch_data;
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 4:
-    {
       printf("Set minute: %d\n", switch_data);
-      current_time.minute = switch_data;
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 5:
-    {
       printf("Set second: %d\n", switch_data);
-      current_time.second = switch_data;
+      apply_datetime_field(target, state, switch_data);
       break;
-    }
     case 6:
-    {
-      printf("Time set: %02d/%02d/%04d %02d:%02d:%02d\n", current_time.day, current_time.month, current_time.year, current_time.hour, current_time.minute, current_time.second);
+      printf("%s: %02d/%02d/%04d %02d:%02d:%02d\n", done_label,
+             target->day, target->month, target->year,
+             target->hour, target->minute, target->second);
       mode = RUNNING;
+      alarm_counter = 0;
       state = -1;
 
       IOWR(HEX2_BASE, 0, 0xFF);
@@ -224,104 +248,18 @@ void set_time()
       IOWR(HEX0_BASE, 0, 0xFF);
       break;
     }
-    }
 
-    lcd_show_datetime(&current_time);
+    lcd_show_datetime(target);
     state += 1;
   }
 }
 
+void set_time()
+{
+  run_set_datetime(&current_time, "Time set");
+}
+
 void set_alarm()
 {
-  int switch_data = IORD(SWITCH_BASE, 0);
-
-  if (switch_data == 0)
-    return;
-
-  if (state == 0) // check year
-    switch_data = switch_data + 2000;
-  else if (state == 1) // check month
-    switch_data = switch_data % 13;
-  else if (state == 2) // check day
-  {
-    int is_leap_year = ((current_time.year % 4 == 0 && current_time.year % 100 != 0) || (current_time.year % 400 == 0));
-    int is_month_31_days = (current_time.month == 1 || current_time.month == 3 || current_time.month == 5 || current_time.month == 7 || current_time.month == 8 || current_time.month == 10 || current_time.month == 12);
-
-    if (is_month_31_days)
-      switch_data = switch_data % 32;
-    else if (current_time.month == 2)
-      switch_data = switch_data % (is_leap_year ? 30 : 29);
-    else
-      switch_data = switch_data % 31;
-  }
-  else if (state == 3)
-    switch_data = switch_data % 24;
-  else if (state == 4)
-    switch_data = switch_data % 60;
-  else if (state == 5)
-    switch_data = switch_data % 60;
-
-  IOWR(HEX2_BASE, 0, 0xFF);
-  IOWR(HEX1_BASE, 0, HEX_7SEG[(switch_data / 10) % 10]);
-  IOWR(HEX0_BASE, 0, HEX_7SEG[switch_data % 10]);
-
-  if (IORD(BUTTON_BASE, 0) == 5)
-  {
-    while (IORD(BUTTON_BASE, 0) == 5)
-      ;
-
-    switch (state)
-    {
-    case 0:
-    {
-      printf("Set year: %d\n", (switch_data));
-      alarm_time.year = (switch_data);
-      break;
-    }
-    case 1:
-    {
-      printf("Set month: %d\n", switch_data);
-      alarm_time.month = switch_data;
-      break;
-    }
-    case 2:
-    {
-      printf("Set day: %d\n", switch_data);
-      alarm_time.day = switch_data;
-      break;
-    }
-    case 3:
-    {
-      printf("Set hour: %d\n", switch_data);
-      alarm_time.hour = switch_data;
-      break;
-    }
-    case 4:
-    {
-      printf("Set minute: %d\n", switch_data);
-      alarm_time.minute = switch_data;
-      break;
-    }
-    case 5:
-    {
-      printf("Set second: %d\n", switch_data);
-      alarm_time.second = switch_data;
-      break;
-    }
-    case 6:
-    {
-      printf("Alarm set: %02d/%02d/%04d %02d:%02d:%02d\n", alarm_time.day, alarm_time.month, alarm_time.year, alarm_time.hour, alarm_time.minute, alarm_time.second);
-      mode = RUNNING;
-      state = -1;
-
-      IOWR(HEX2_BASE, 0, 0xFF);
-      IOWR(HEX1_BASE, 0, 0xFF);
-      IOWR(HEX0_BASE, 0, 0xFF);
-      break;
-    }
-    }
-
-    lcd_show_datetime(&alarm_time);
-    state += 1;
-  }
+  run_set_datetime(&alarm_time, "Alarm set");
 }

@@ -2,8 +2,8 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>Apr 1, 2026 7:23:45 PM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1775046225863</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>Apr 1, 2026 8:10:00 PM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1775049000509</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>D:\yukiot\fpga\software\fpga_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>D:\yukiot\fpga\system.sopcinfo</SopcDesignFile>

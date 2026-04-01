@@ -26,7 +26,7 @@ static Date current_time = {25, 3, 2026, 18, 0, 0},
             alarm_time = {25, 3, 2026, 18, 0, 5};
 static enum MODE mode = RUNNING;
 static int alarm_counter = 0, buzz_state = 0;
-// static char buffer[100];
+static char buffer[100];
 int count = 0, count_2 = 0;
 
 const int HEX_7SEG[16] = {
@@ -92,7 +92,6 @@ int main(void)
   lcd_init();
   lcd_power_on();
   lcd_show_datetime(&current_time);
-  IOWR(BUZZ_BASE, 0, 0);
 
   timer_init(10);
   alt_ic_isr_register(0, TIMER_IRQ, Timer_IQR_Handler, (void *)0, (void *)0);
@@ -101,7 +100,7 @@ int main(void)
 
   while (1)
   {
-    if (IORD(BUTTON_BASE, 0) == 14 && mode != RUNNING)
+    if (IORD(BUTTON_BASE, 0) == 14)
     {
       while (IORD(BUTTON_BASE, 0) == 14)
         ;
@@ -129,6 +128,33 @@ int main(void)
 
     if (is_alarm(&current_time, &alarm_time))
       alarm_counter = 1000;
+
+    // UART handler
+    if (is_uart_available())
+    {
+      uart_receive_string(buffer, sizeof(buffer));
+      printf("Received from UART: %s\n", buffer);
+
+      if (buffer[0] == 't') // set time command
+      {
+        Date new_time;
+
+        if (scanf(buffer, "t%2d%2d%4d%2d%2d%2d",
+                  &new_time.day, &new_time.month, &new_time.year,
+                  &new_time.hour, &new_time.minute, &new_time.second) == 6)
+        {
+          current_time = new_time;
+          printf("Time updated via UART: %02d/%02d/%04d %02d:%02d:%02d\n",
+                 current_time.day, current_time.month, current_time.year,
+                 current_time.hour, current_time.minute, current_time.second);
+          lcd_show_datetime(&current_time);
+        }
+        else
+        {
+          printf("Invalid time format received via UART.\n");
+        }
+      }
+    }
   }
 
   return 0;

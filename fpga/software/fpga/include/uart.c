@@ -3,9 +3,11 @@
 
 #include "uart.h"
 
+#define UART_RX_IDLE_LIMIT 50000
+
 int is_uart_available(void)
 {
-    return (IORD_ALTERA_AVALON_UART_STATUS(UART_0_BASE) & 0x80) != 0x80;
+    return (IORD_ALTERA_AVALON_UART_STATUS(UART_0_BASE) & ALTERA_AVALON_UART_STATUS_RRDY_MSK) != 0;
 }
 
 void uart_send_char(char c)
@@ -32,10 +34,35 @@ char uart_receive_char(void)
 
 void uart_receive_string(char *buffer, int max_length)
 {
+    if (max_length <= 0)
+        return;
+
     int i = 0;
+    int started = 0;
+
     while (i < max_length - 1)
     {
+        int idle = 0;
+
+        while (!is_uart_available())
+        {
+            if (!started)
+            {
+                buffer[0] = '\0';
+                return;
+            }
+
+            idle++;
+            if (idle >= UART_RX_IDLE_LIMIT)
+            {
+                buffer[i] = '\0';
+                return;
+            }
+        }
+
         char c = uart_receive_char();
+        started = 1;
+
         if (c == '\n' || c == '\r')
         {
             break;

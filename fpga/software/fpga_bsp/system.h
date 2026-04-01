@@ -4,7 +4,7 @@
  * Machine generated for CPU 'nios2_qsys_0' in SOPC Builder design 'system'
  * SOPC Builder design path: D:/yukiot/fpga/system.sopcinfo
  *
- * Generated: Wed Mar 25 19:21:39 ICT 2026
+ * Generated: Wed Apr 01 15:28:55 ICT 2026
  */
 
 /*
@@ -147,19 +147,19 @@
 #define ALT_NUM_INTERNAL_INTERRUPT_CONTROLLERS 1
 #define ALT_NUM_INTERRUPT_CONTROLLERS 1
 #define ALT_STDERR "/dev/jtag_uart_0"
-#define ALT_STDERR_BASE 0x110d0
+#define ALT_STDERR_BASE 0x11120
 #define ALT_STDERR_DEV jtag_uart_0
 #define ALT_STDERR_IS_JTAG_UART
 #define ALT_STDERR_PRESENT
 #define ALT_STDERR_TYPE "altera_avalon_jtag_uart"
 #define ALT_STDIN "/dev/jtag_uart_0"
-#define ALT_STDIN_BASE 0x110d0
+#define ALT_STDIN_BASE 0x11120
 #define ALT_STDIN_DEV jtag_uart_0
 #define ALT_STDIN_IS_JTAG_UART
 #define ALT_STDIN_PRESENT
 #define ALT_STDIN_TYPE "altera_avalon_jtag_uart"
 #define ALT_STDOUT "/dev/jtag_uart_0"
-#define ALT_STDOUT_BASE 0x110d0
+#define ALT_STDOUT_BASE 0x11120
 #define ALT_STDOUT_DEV jtag_uart_0
 #define ALT_STDOUT_IS_JTAG_UART
 #define ALT_STDOUT_PRESENT
@@ -173,7 +173,7 @@
  */
 
 #define ALT_MODULE_CLASS_button altera_avalon_pio
-#define BUTTON_BASE 0x110c0
+#define BUTTON_BASE 0x11110
 #define BUTTON_BIT_CLEARING_EDGE_REGISTER 0
 #define BUTTON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define BUTTON_CAPTURE 0
@@ -195,12 +195,66 @@
 
 
 /*
+ * button_col configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_button_col altera_avalon_pio
+#define BUTTON_COL_BASE 0x11080
+#define BUTTON_COL_BIT_CLEARING_EDGE_REGISTER 0
+#define BUTTON_COL_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define BUTTON_COL_CAPTURE 0
+#define BUTTON_COL_DATA_WIDTH 32
+#define BUTTON_COL_DO_TEST_BENCH_WIRING 0
+#define BUTTON_COL_DRIVEN_SIM_VALUE 0
+#define BUTTON_COL_EDGE_TYPE "NONE"
+#define BUTTON_COL_FREQ 50000000
+#define BUTTON_COL_HAS_IN 1
+#define BUTTON_COL_HAS_OUT 0
+#define BUTTON_COL_HAS_TRI 0
+#define BUTTON_COL_IRQ -1
+#define BUTTON_COL_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define BUTTON_COL_IRQ_TYPE "NONE"
+#define BUTTON_COL_NAME "/dev/button_col"
+#define BUTTON_COL_RESET_VALUE 0
+#define BUTTON_COL_SPAN 16
+#define BUTTON_COL_TYPE "altera_avalon_pio"
+
+
+/*
+ * button_row configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_button_row altera_avalon_pio
+#define BUTTON_ROW_BASE 0x11070
+#define BUTTON_ROW_BIT_CLEARING_EDGE_REGISTER 0
+#define BUTTON_ROW_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define BUTTON_ROW_CAPTURE 0
+#define BUTTON_ROW_DATA_WIDTH 32
+#define BUTTON_ROW_DO_TEST_BENCH_WIRING 0
+#define BUTTON_ROW_DRIVEN_SIM_VALUE 0
+#define BUTTON_ROW_EDGE_TYPE "NONE"
+#define BUTTON_ROW_FREQ 50000000
+#define BUTTON_ROW_HAS_IN 0
+#define BUTTON_ROW_HAS_OUT 1
+#define BUTTON_ROW_HAS_TRI 0
+#define BUTTON_ROW_IRQ -1
+#define BUTTON_ROW_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define BUTTON_ROW_IRQ_TYPE "NONE"
+#define BUTTON_ROW_NAME "/dev/button_row"
+#define BUTTON_ROW_RESET_VALUE 0
+#define BUTTON_ROW_SPAN 16
+#define BUTTON_ROW_TYPE "altera_avalon_pio"
+
+
+/*
  * buzz configuration
  *
  */
 
 #define ALT_MODULE_CLASS_buzz altera_avalon_pio
-#define BUZZ_BASE 0x11060
+#define BUZZ_BASE 0x110b0
 #define BUZZ_BIT_CLEARING_EDGE_REGISTER 0
 #define BUZZ_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define BUZZ_CAPTURE 0
@@ -232,12 +286,93 @@
 
 
 /*
+ * hex0 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_hex0 altera_avalon_pio
+#define HEX0_BASE 0x11050
+#define HEX0_BIT_CLEARING_EDGE_REGISTER 0
+#define HEX0_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define HEX0_CAPTURE 0
+#define HEX0_DATA_WIDTH 32
+#define HEX0_DO_TEST_BENCH_WIRING 0
+#define HEX0_DRIVEN_SIM_VALUE 0
+#define HEX0_EDGE_TYPE "NONE"
+#define HEX0_FREQ 50000000
+#define HEX0_HAS_IN 0
+#define HEX0_HAS_OUT 1
+#define HEX0_HAS_TRI 0
+#define HEX0_IRQ -1
+#define HEX0_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define HEX0_IRQ_TYPE "NONE"
+#define HEX0_NAME "/dev/hex0"
+#define HEX0_RESET_VALUE 0
+#define HEX0_SPAN 16
+#define HEX0_TYPE "altera_avalon_pio"
+
+
+/*
+ * hex1 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_hex1 altera_avalon_pio
+#define HEX1_BASE 0x11040
+#define HEX1_BIT_CLEARING_EDGE_REGISTER 0
+#define HEX1_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define HEX1_CAPTURE 0
+#define HEX1_DATA_WIDTH 32
+#define HEX1_DO_TEST_BENCH_WIRING 0
+#define HEX1_DRIVEN_SIM_VALUE 0
+#define HEX1_EDGE_TYPE "NONE"
+#define HEX1_FREQ 50000000
+#define HEX1_HAS_IN 0
+#define HEX1_HAS_OUT 1
+#define HEX1_HAS_TRI 0
+#define HEX1_IRQ -1
+#define HEX1_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define HEX1_IRQ_TYPE "NONE"
+#define HEX1_NAME "/dev/hex1"
+#define HEX1_RESET_VALUE 0
+#define HEX1_SPAN 16
+#define HEX1_TYPE "altera_avalon_pio"
+
+
+/*
+ * hex2 configuration
+ *
+ */
+
+#define ALT_MODULE_CLASS_hex2 altera_avalon_pio
+#define HEX2_BASE 0x11060
+#define HEX2_BIT_CLEARING_EDGE_REGISTER 0
+#define HEX2_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define HEX2_CAPTURE 0
+#define HEX2_DATA_WIDTH 32
+#define HEX2_DO_TEST_BENCH_WIRING 0
+#define HEX2_DRIVEN_SIM_VALUE 0
+#define HEX2_EDGE_TYPE "NONE"
+#define HEX2_FREQ 50000000
+#define HEX2_HAS_IN 0
+#define HEX2_HAS_OUT 1
+#define HEX2_HAS_TRI 0
+#define HEX2_IRQ -1
+#define HEX2_IRQ_INTERRUPT_CONTROLLER_ID -1
+#define HEX2_IRQ_TYPE "NONE"
+#define HEX2_NAME "/dev/hex2"
+#define HEX2_RESET_VALUE 0
+#define HEX2_SPAN 16
+#define HEX2_TYPE "altera_avalon_pio"
+
+
+/*
  * jtag_uart_0 configuration
  *
  */
 
 #define ALT_MODULE_CLASS_jtag_uart_0 altera_avalon_jtag_uart
-#define JTAG_UART_0_BASE 0x110d0
+#define JTAG_UART_0_BASE 0x11120
 #define JTAG_UART_0_IRQ 2
 #define JTAG_UART_0_IRQ_INTERRUPT_CONTROLLER_ID 0
 #define JTAG_UART_0_NAME "/dev/jtag_uart_0"
@@ -255,7 +390,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_blon altera_avalon_pio
-#define LCD_BLON_BASE 0x110a0
+#define LCD_BLON_BASE 0x110f0
 #define LCD_BLON_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_BLON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_BLON_CAPTURE 0
@@ -282,7 +417,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_d altera_avalon_pio
-#define LCD_D_BASE 0x11070
+#define LCD_D_BASE 0x110c0
 #define LCD_D_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_D_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_D_CAPTURE 0
@@ -309,7 +444,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_en altera_avalon_pio
-#define LCD_EN_BASE 0x11050
+#define LCD_EN_BASE 0x110a0
 #define LCD_EN_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_EN_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_EN_CAPTURE 0
@@ -336,7 +471,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_on altera_avalon_pio
-#define LCD_ON_BASE 0x110b0
+#define LCD_ON_BASE 0x11100
 #define LCD_ON_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_ON_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_ON_CAPTURE 0
@@ -363,7 +498,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_rs altera_avalon_pio
-#define LCD_RS_BASE 0x11080
+#define LCD_RS_BASE 0x110d0
 #define LCD_RS_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_RS_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_RS_CAPTURE 0
@@ -390,7 +525,7 @@
  */
 
 #define ALT_MODULE_CLASS_lcd_rw altera_avalon_pio
-#define LCD_RW_BASE 0x11090
+#define LCD_RW_BASE 0x110e0
 #define LCD_RW_BIT_CLEARING_EDGE_REGISTER 0
 #define LCD_RW_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LCD_RW_CAPTURE 0
@@ -446,7 +581,7 @@
  */
 
 #define ALT_MODULE_CLASS_switch altera_avalon_pio
-#define SWITCH_BASE 0x11040
+#define SWITCH_BASE 0x11090
 #define SWITCH_BIT_CLEARING_EDGE_REGISTER 0
 #define SWITCH_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define SWITCH_CAPTURE 0

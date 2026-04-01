@@ -76,11 +76,6 @@ void Timer_IQR_Handler(void *isr_context)
   datetime_tick(&current_time);
   lcd_show_datetime(&current_time);
 
-  if (mode == SET_TIME)
-    set_time();
-  else if (mode == SET_ALARM)
-    set_alarm();
-
   if (alarm_counter > 0)
   {
     IOWR(BUZZ_BASE, 0, buzz_state);
@@ -103,6 +98,11 @@ int main(void)
 
   while (1)
   {
+    if (mode == SET_TIME)
+      set_time();
+    else if (mode == SET_ALARM)
+      set_alarm();
+
     if (is_button_pressed(BUTTON1_MASK) && mode == RUNNING)
     {
       while (is_button_pressed(BUTTON1_MASK))

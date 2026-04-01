@@ -6,12 +6,10 @@
  */
 
 #include "sys/alt_irq.h"
-#include <ctype.h>
+#include <stdio.h>
 #include <io.h>
-#include <string.h>
-#include <unistd.h>
 
-#include "system.h"
+#include <system.h>
 #include "include/datetime.h"
 #include "include/lcd.h"
 #include "include/timer_ctrl.h"
@@ -28,17 +26,8 @@ static Date current_time = {25, 3, 2026, 18, 0, 0},
             alarm_time = {25, 3, 2026, 18, 0, 5};
 static enum MODE mode = RUNNING;
 static int alarm_counter = 0, buzz_state = 0;
-static char buffer[100];
-static Date pending_time;
-static Date pending_alarm;
-static int set_time_field = 1;
-static int set_alarm_field = 1;
-static int button1_prev_pressed_set_time = 0;
-static int button2_prev_pressed_set_alarm = 0;
-
-#define BUTTON0_MASK 0x1
-#define BUTTON1_MASK 0x2
-#define BUTTON2_MASK 0x4
+// static char buffer[100];
+int count = 0, count_2 = 0;
 
 const int HEX_7SEG[16] = {
     0x40, // 0
@@ -63,25 +52,37 @@ void set_time();
 
 void set_alarm();
 
-static int is_button_pressed(int button_mask)
-{
-  int button_state = IORD(BUTTON_BASE, 0);
-
-  return (button_state & button_mask) != 0;
-}
-
 void Timer_IQR_Handler(void *isr_context)
 {
   (void)isr_context;
-  datetime_tick(&current_time);
-  lcd_show_datetime(&current_time);
+
+  count++;
+  if (count >= 100)
+  {
+    count = 0;
+    datetime_tick(&current_time);
+  }
+
+  if (mode == RUNNING)
+    lcd_show_datetime(&current_time);
+  else if (mode == SET_TIME)
+    set_time();
+  else if (mode == SET_ALARM)
+    set_alarm();
 
   if (alarm_counter > 0)
   {
-    IOWR(BUZZ_BASE, 0, buzz_state);
-    buzz_state = !buzz_state;
-    alarm_counter--;
+    count_2++;
+    if (count_2 >= 10)
+    {
+      count_2 = 0;
+      IOWR(BUZZ_BASE, 0, buzz_state);
+      buzz_state = !buzz_state;
+      alarm_counter--;
+    }
   }
+  else
+    IOWR(BUZZ_BASE, 0, 0);
 
   timer_clear_timeout();
 }
@@ -93,244 +94,234 @@ int main(void)
   lcd_show_datetime(&current_time);
   IOWR(BUZZ_BASE, 0, 0);
 
-  timer_init(1000); // Initialize timer for 1-second intervals
+  timer_init(10);
   alt_ic_isr_register(0, TIMER_IRQ, Timer_IQR_Handler, (void *)0, (void *)0);
+
+  printf("Started!");
 
   while (1)
   {
-    if (mode == SET_TIME)
-      set_time();
-    else if (mode == SET_ALARM)
-      set_alarm();
 
-    if (is_button_pressed(BUTTON1_MASK) && mode == RUNNING)
+    if (IORD(BUTTON_BASE, 0) == 6)
     {
-      while (is_button_pressed(BUTTON1_MASK))
+      while (IORD(BUTTON_BASE, 0) == 6)
         ;
 
-      pending_time = current_time;
-      set_time_field = 1;
-      button1_prev_pressed_set_time = 0;
+      mode = RUNNING;
+      printf("Tat bao thuc\n");
+    }
+    else if (IORD(BUTTON_BASE, 0) == 5 && mode == RUNNING)
+    {
+      while (IORD(BUTTON_BASE, 0) == 5)
+        ;
+
       mode = SET_TIME;
       printf("Mode: SET_TIME\n");
     }
-
-    if (is_button_pressed(BUTTON2_MASK) && mode == RUNNING)
+    else if (IORD(BUTTON_BASE, 0) == 3 && mode == RUNNING)
     {
-      while (is_button_pressed(BUTTON2_MASK))
+      while (IORD(BUTTON_BASE, 0) == 3)
         ;
 
-      pending_alarm = alarm_time;
-      set_alarm_field = 1;
-      button2_prev_pressed_set_alarm = 0;
       mode = SET_ALARM;
       printf("Mode: SET_ALARM\n");
     }
 
-    if (is_uart_available())
-    {
-      uart_receive_string(buffer, sizeof(buffer));
-      process_uart_command(buffer);
-      uart_send_string(buffer);
-    }
-
-    if (is_alarm(&current_time, &alarm_time) && alarm_counter == 0)
-    {
-      alarm_counter = 10;
-    }
-
-    if (is_button_pressed(BUTTON0_MASK)) // Turn off alarm when BUTTON0 is pressed
-    {
-      while (is_button_pressed(BUTTON0_MASK))
-        ;
-
-      alarm_counter = 0;
-      IOWR(BUZZ_BASE, 0, 0);
-      printf("Alarm turned off\n");
-    }
+    if (is_alarm(&current_time, &alarm_time))
+      alarm_counter = 1000;
   }
 
   return 0;
 }
 
-static int read_switch_7bit()
-{
-  int value = IORD(SWITCH_BASE, 0) & 0x7F;
-
-  if (value > 99)
-    value = 99;
-
-  return value;
-}
-
-static int parse_2digits(const char *s)
-{
-  if (!isdigit((unsigned char)s[0]) || !isdigit((unsigned char)s[1]))
-    return -1;
-
-  return (s[0] - '0') * 10 + (s[1] - '0');
-}
-
-static int parse_4digits(const char *s)
-{
-  if (!isdigit((unsigned char)s[0]) || !isdigit((unsigned char)s[1]) ||
-      !isdigit((unsigned char)s[2]) || !isdigit((unsigned char)s[3]))
-    return -1;
-
-  return (s[0] - '0') * 1000 + (s[1] - '0') * 100 + (s[2] - '0') * 10 + (s[3] - '0');
-}
-
-static int parse_datetime_payload(const char *payload, Date *out)
-{
-  int day, month, year, hour, minute, second;
-
-  if (strlen(payload) != 14)
-    return 0;
-
-  day = parse_2digits(payload);
-  month = parse_2digits(payload + 2);
-  year = parse_4digits(payload + 4);
-  hour = parse_2digits(payload + 8);
-  minute = parse_2digits(payload + 10);
-  second = parse_2digits(payload + 12);
-
-  if (day < 1 || day > 31)
-    return 0;
-  if (month < 1 || month > 12)
-    return 0;
-  if (year < 0 || year > 9999)
-    return 0;
-  if (hour < 0 || hour > 23)
-    return 0;
-  if (minute < 0 || minute > 59)
-    return 0;
-  if (second < 0 || second > 59)
-    return 0;
-
-  out->day = day;
-  out->month = month;
-  out->year = year;
-  out->hour = hour;
-  out->minute = minute;
-  out->second = second;
-
-  return 1;
-}
-
-static void process_uart_command(const char *cmd)
-{
-  Date parsed;
-  char action;
-
-  if (strlen(cmd) < 2)
-    return;
-
-  action = cmd[0];
-
-  if (!parse_datetime_payload(cmd + 1, &parsed))
-  {
-    printf("Invalid UART time format. Use Tddmmyyyyhhmmss or Addmmyyyyhhmmss\n");
-    return;
-  }
-
-  if (action == 'T')
-  {
-    current_time = parsed;
-    pending_time = parsed;
-    printf("Time set from UART: %02d/%02d/%04d %02d:%02d:%02d\n",
-           parsed.day, parsed.month, parsed.year,
-           parsed.hour, parsed.minute, parsed.second);
-  }
-  else if (action == 'A')
-  {
-    alarm_time = parsed;
-    pending_alarm = parsed;
-    printf("Alarm set from UART: %02d/%02d/%04d %02d:%02d:%02d\n",
-           parsed.day, parsed.month, parsed.year,
-           parsed.hour, parsed.minute, parsed.second);
-  }
-  else
-  {
-    printf("Invalid action '%c'. Use T (time) or A (alarm)\n", action);
-  }
-}
-
-static void set_date_field_value(Date *pending, int field, int value)
-{
-  switch (field)
-  {
-  case 1:
-    pending->day = value;
-    break;
-  case 2:
-    pending->month = value;
-    break;
-  case 3:
-    pending->year = 2000 + value;
-    break;
-  case 4:
-    pending->hour = value;
-    break;
-  case 5:
-    pending->minute = value;
-    break;
-  case 6:
-    pending->second = value;
-    break;
-  default:
-    break;
-  }
-}
-
-static void run_set_mode(Date *pending, Date *target, int *field, int *prev_pressed, int button_pressed, const char *commit_message)
-{
-  int value = read_switch_7bit();
-  int tens = value / 10;
-  int units = value % 10;
-  int button_rising_edge = button_pressed && !(*prev_pressed);
-
-  if (*field < 1 || *field > 6)
-    *field = 1;
-
-  set_date_field_value(pending, *field, value);
-
-  IOWR(HEX2_BASE, 0, HEX_7SEG[*field]);
-  IOWR(HEX1_BASE, 0, HEX_7SEG[tens]);
-  IOWR(HEX0_BASE, 0, HEX_7SEG[units]);
-
-  if (button_rising_edge)
-  {
-    if (*field >= 6)
-    {
-      *target = *pending;
-      mode = RUNNING;
-      printf("%s\n", commit_message);
-    }
-    else
-    {
-      (*field)++;
-    }
-
-    *prev_pressed = 1;
-  }
-  else
-  {
-    *prev_pressed = button_pressed;
-  }
-}
+int state = 0;
 
 void set_time()
 {
-  int button1_pressed = is_button_pressed(BUTTON1_MASK);
+  int switch_data = IORD(SWITCH_BASE, 0);
 
-  run_set_mode(&pending_time, &current_time, &set_time_field, &button1_prev_pressed_set_time,
-               button1_pressed, "SET_TIME committed");
+  if (switch_data == 0)
+    return;
+
+  if (state == 0) // check year
+    switch_data = switch_data + 2000;
+  else if (state == 1) // check month
+    switch_data = switch_data % 13;
+  else if (state == 2) // check day
+  {
+    int is_leap_year = ((current_time.year % 4 == 0 && current_time.year % 100 != 0) || (current_time.year % 400 == 0));
+    int is_month_31_days = (current_time.month == 1 || current_time.month == 3 || current_time.month == 5 || current_time.month == 7 || current_time.month == 8 || current_time.month == 10 || current_time.month == 12);
+
+    if (is_month_31_days)
+      switch_data = switch_data % 32;
+    else if (current_time.month == 2)
+      switch_data = switch_data % (is_leap_year ? 30 : 29);
+    else
+      switch_data = switch_data % 31;
+  }
+  else if (state == 3)
+    switch_data = switch_data % 24;
+  else if (state == 4)
+    switch_data = switch_data % 60;
+  else if (state == 5)
+    switch_data = switch_data % 60;
+
+  IOWR(HEX2_BASE, 0, 0xFF);
+  IOWR(HEX1_BASE, 0, HEX_7SEG[(switch_data / 10) % 10]);
+  IOWR(HEX0_BASE, 0, HEX_7SEG[switch_data % 10]);
+
+  if (IORD(BUTTON_BASE, 0) == 5)
+  {
+    while (IORD(BUTTON_BASE, 0) == 5)
+      ;
+
+    switch (state)
+    {
+    case 0:
+    {
+      printf("Set year: %d\n", (switch_data));
+      current_time.year = (switch_data);
+      break;
+    }
+    case 1:
+    {
+      printf("Set month: %d\n", switch_data);
+      current_time.month = switch_data;
+      break;
+    }
+    case 2:
+    {
+      printf("Set day: %d\n", switch_data);
+      current_time.day = switch_data;
+      break;
+    }
+    case 3:
+    {
+      printf("Set hour: %d\n", switch_data);
+      current_time.hour = switch_data;
+      break;
+    }
+    case 4:
+    {
+      printf("Set minute: %d\n", switch_data);
+      current_time.minute = switch_data;
+      break;
+    }
+    case 5:
+    {
+      printf("Set second: %d\n", switch_data);
+      current_time.second = switch_data;
+      break;
+    }
+    case 6:
+    {
+      printf("Time set: %02d/%02d/%04d %02d:%02d:%02d\n", current_time.day, current_time.month, current_time.year, current_time.hour, current_time.minute, current_time.second);
+      mode = RUNNING;
+      state = -1;
+
+      IOWR(HEX2_BASE, 0, 0xFF);
+      IOWR(HEX1_BASE, 0, 0xFF);
+      IOWR(HEX0_BASE, 0, 0xFF);
+      break;
+    }
+    }
+
+    lcd_show_datetime(&current_time);
+    state += 1;
+  }
 }
 
 void set_alarm()
 {
-  int button2_pressed = is_button_pressed(BUTTON2_MASK);
+  int switch_data = IORD(SWITCH_BASE, 0);
 
-  run_set_mode(&pending_alarm, &alarm_time, &set_alarm_field, &button2_prev_pressed_set_alarm,
-               button2_pressed, "SET_ALARM committed");
+  if (switch_data == 0)
+    return;
+
+  if (state == 0) // check year
+    switch_data = switch_data + 2000;
+  else if (state == 1) // check month
+    switch_data = switch_data % 13;
+  else if (state == 2) // check day
+  {
+    int is_leap_year = ((current_time.year % 4 == 0 && current_time.year % 100 != 0) || (current_time.year % 400 == 0));
+    int is_month_31_days = (current_time.month == 1 || current_time.month == 3 || current_time.month == 5 || current_time.month == 7 || current_time.month == 8 || current_time.month == 10 || current_time.month == 12);
+
+    if (is_month_31_days)
+      switch_data = switch_data % 32;
+    else if (current_time.month == 2)
+      switch_data = switch_data % (is_leap_year ? 30 : 29);
+    else
+      switch_data = switch_data % 31;
+  }
+  else if (state == 3)
+    switch_data = switch_data % 24;
+  else if (state == 4)
+    switch_data = switch_data % 60;
+  else if (state == 5)
+    switch_data = switch_data % 60;
+
+  IOWR(HEX2_BASE, 0, 0xFF);
+  IOWR(HEX1_BASE, 0, HEX_7SEG[(switch_data / 10) % 10]);
+  IOWR(HEX0_BASE, 0, HEX_7SEG[switch_data % 10]);
+
+  if (IORD(BUTTON_BASE, 0) == 5)
+  {
+    while (IORD(BUTTON_BASE, 0) == 5)
+      ;
+
+    switch (state)
+    {
+    case 0:
+    {
+      printf("Set year: %d\n", (switch_data));
+      alarm_time.year = (switch_data);
+      break;
+    }
+    case 1:
+    {
+      printf("Set month: %d\n", switch_data);
+      alarm_time.month = switch_data;
+      break;
+    }
+    case 2:
+    {
+      printf("Set day: %d\n", switch_data);
+      alarm_time.day = switch_data;
+      break;
+    }
+    case 3:
+    {
+      printf("Set hour: %d\n", switch_data);
+      alarm_time.hour = switch_data;
+      break;
+    }
+    case 4:
+    {
+      printf("Set minute: %d\n", switch_data);
+      alarm_time.minute = switch_data;
+      break;
+    }
+    case 5:
+    {
+      printf("Set second: %d\n", switch_data);
+      alarm_time.second = switch_data;
+      break;
+    }
+    case 6:
+    {
+      printf("Alarm set: %02d/%02d/%04d %02d:%02d:%02d\n", alarm_time.day, alarm_time.month, alarm_time.year, alarm_time.hour, alarm_time.minute, alarm_time.second);
+      mode = RUNNING;
+      state = -1;
+
+      IOWR(HEX2_BASE, 0, 0xFF);
+      IOWR(HEX1_BASE, 0, 0xFF);
+      IOWR(HEX0_BASE, 0, 0xFF);
+      break;
+    }
+    }
+
+    lcd_show_datetime(&alarm_time);
+    state += 1;
+  }
 }

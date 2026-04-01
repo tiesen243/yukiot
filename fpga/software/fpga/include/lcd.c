@@ -19,10 +19,10 @@ static void lcd_command(int data)
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_RW_BASE, 0x00);
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_D_BASE, data & 0xFF);
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_EN_BASE, 0x01);
-    delay(20);
+    delay(5);
 
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_EN_BASE, 0x00);
-    delay(20);
+    delay(5);
 }
 
 static void lcd_data(char data)
@@ -31,10 +31,10 @@ static void lcd_data(char data)
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_RW_BASE, 0x00);
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_D_BASE, data & 0xFF);
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_EN_BASE, 0x01);
-    delay(20);
+    delay(5);
 
     IOWR_ALTERA_AVALON_PIO_DATA(LCD_EN_BASE, 0x00);
-    delay(20);
+    delay(5);
 }
 
 static void lcd_set_cursor(int row, int col)

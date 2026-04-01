@@ -6,7 +6,9 @@
  */
 
 #include "sys/alt_irq.h"
+#include <ctype.h>
 #include <io.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "system.h"
@@ -128,6 +130,7 @@ int main(void)
     if (is_uart_available())
     {
       uart_receive_string(buffer, sizeof(buffer));
+      process_uart_command(buffer);
       uart_send_string(buffer);
     }
 
@@ -158,6 +161,98 @@ static int read_switch_7bit()
     value = 99;
 
   return value;
+}
+
+static int parse_2digits(const char *s)
+{
+  if (!isdigit((unsigned char)s[0]) || !isdigit((unsigned char)s[1]))
+    return -1;
+
+  return (s[0] - '0') * 10 + (s[1] - '0');
+}
+
+static int parse_4digits(const char *s)
+{
+  if (!isdigit((unsigned char)s[0]) || !isdigit((unsigned char)s[1]) ||
+      !isdigit((unsigned char)s[2]) || !isdigit((unsigned char)s[3]))
+    return -1;
+
+  return (s[0] - '0') * 1000 + (s[1] - '0') * 100 + (s[2] - '0') * 10 + (s[3] - '0');
+}
+
+static int parse_datetime_payload(const char *payload, Date *out)
+{
+  int day, month, year, hour, minute, second;
+
+  if (strlen(payload) != 14)
+    return 0;
+
+  day = parse_2digits(payload);
+  month = parse_2digits(payload + 2);
+  year = parse_4digits(payload + 4);
+  hour = parse_2digits(payload + 8);
+  minute = parse_2digits(payload + 10);
+  second = parse_2digits(payload + 12);
+
+  if (day < 1 || day > 31)
+    return 0;
+  if (month < 1 || month > 12)
+    return 0;
+  if (year < 0 || year > 9999)
+    return 0;
+  if (hour < 0 || hour > 23)
+    return 0;
+  if (minute < 0 || minute > 59)
+    return 0;
+  if (second < 0 || second > 59)
+    return 0;
+
+  out->day = day;
+  out->month = month;
+  out->year = year;
+  out->hour = hour;
+  out->minute = minute;
+  out->second = second;
+
+  return 1;
+}
+
+static void process_uart_command(const char *cmd)
+{
+  Date parsed;
+  char action;
+
+  if (strlen(cmd) < 2)
+    return;
+
+  action = cmd[0];
+
+  if (!parse_datetime_payload(cmd + 1, &parsed))
+  {
+    printf("Invalid UART time format. Use Tddmmyyyyhhmmss or Addmmyyyyhhmmss\n");
+    return;
+  }
+
+  if (action == 'T')
+  {
+    current_time = parsed;
+    pending_time = parsed;
+    printf("Time set from UART: %02d/%02d/%04d %02d:%02d:%02d\n",
+           parsed.day, parsed.month, parsed.year,
+           parsed.hour, parsed.minute, parsed.second);
+  }
+  else if (action == 'A')
+  {
+    alarm_time = parsed;
+    pending_alarm = parsed;
+    printf("Alarm set from UART: %02d/%02d/%04d %02d:%02d:%02d\n",
+           parsed.day, parsed.month, parsed.year,
+           parsed.hour, parsed.minute, parsed.second);
+  }
+  else
+  {
+    printf("Invalid action '%c'. Use T (time) or A (alarm)\n", action);
+  }
 }
 
 static void set_date_field_value(Date *pending, int field, int value)
